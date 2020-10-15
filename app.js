@@ -6,7 +6,7 @@ const logger = require('./core/logger');
 var cors = require('cors');
 var mysqlAdmin = require('node-mysql-admin');
 
-var whitelist = ['http://localhost', 'http://localhost:3000', 'http://localhost:3080']
+var whitelist = ['http://localhost', 'http://localhost:3000', 'http://localhost:3080', 'http://localhost:8000', 'http://192.168.194.34:8000']
 var corsOptions = {
     origin: function (origin, callback) {
         if(!origin) {
@@ -33,6 +33,7 @@ app.use((req, res, next) => {
 const srv1 = new querier('zaginiony-swiat.pl', 27017, 32332, 'Azorek530');
 const srv2 = new querier('zaginiony-swiat.pl', 27018, 32333, 'Azorek530');
 const srv3 = new querier('zaginiony-swiat.pl', 27019, 32334, 'Azorek530');
+const srv4 = new querier('zaginiony-swiat.pl', 27021, 32339, 'Azorek530');
 
 app.get('/', async (req, res) => {
   res.json({ success: true });
@@ -44,6 +45,7 @@ app.get('/get_status/', async (req, res) => {
   status.push( await srv1.showInfo() );
   status.push( await srv2.showInfo() );
   status.push( await srv3.showInfo() );
+  status.push( await srv4.showInfo() );
 
   res.json({ success: true, response: status });
 });
