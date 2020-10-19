@@ -3,8 +3,8 @@ const app = express();
 const port = 3080;
 const querier = require('./modules/querier');
 const logger = require('./core/logger');
-var cors = require('cors');
-var mysqlAdmin = require('node-mysql-admin');
+const cors = require('cors');
+const mysqlAdmin = require('node-mysql-admin');
 
 var whitelist = ['http://localhost', 'http://localhost:3000', 'http://localhost:3080', 'http://localhost:8000', 'http://192.168.194.34:8000']
 var corsOptions = {
