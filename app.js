@@ -33,21 +33,34 @@ app.use((req, res, next) => {
 const srv1 = new querier('zaginiony-swiat.pl', 27017, 32332, 'Azorek530');
 const srv2 = new querier('zaginiony-swiat.pl', 27018, 32333, 'Azorek530');
 const srv3 = new querier('zaginiony-swiat.pl', 27019, 32334, 'Azorek530');
-const srv4 = new querier('zaginiony-swiat.pl', 27021, 32339, 'Azorek530');
+const srv4 = new querier('zaginiony-swiat.pl', 27015, 32330, 'zagswi1');
+const srv5 = new querier('zaginiony-swiat.pl', 27016, 32331, 'zagswi1');
 
 app.get('/', async (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/get_status/', async (req, res) => {
+app.get('/get_status/:id', async (req, res) => {
+  const servers_id = req.params.id;
   const status = [];
 
-  status.push( await srv1.showInfo() );
-  status.push( await srv2.showInfo() );
-  status.push( await srv3.showInfo() );
-  status.push( await srv4.showInfo() );
+  switch(servers_id) {
+    case '1':
+      status.push( await srv1.showInfo() );
+      status.push( await srv2.showInfo() );
+      status.push( await srv3.showInfo() );
 
-  res.json({ success: true, response: status });
+      res.json({ success: true, response: status });
+      break;
+    case '2':
+      status.push( await srv4.showInfo() );
+      status.push( await srv5.showInfo() );
+
+      res.json({ success: true, response: status });
+      break;
+    default:
+      res.json({ success: false, error: 'No servers selected' });
+  }
 });
 
 app.use(mysqlAdmin(app));

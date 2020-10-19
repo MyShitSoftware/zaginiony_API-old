@@ -13,6 +13,7 @@ class query {
       port: query_port
     }).catch((error) => {
       this.#info = 0;
+      logger.log('RCON', "Unable to connect!");
     });
   }
   async showInfo() {
@@ -57,7 +58,7 @@ class query {
     this.#conn.connect();
 
     this.#conn.on('connect', () => {
-      logger.log('RCON', 'Connected, trying to authorize');
+      logger.log('RCON', 'Connected, trying to authorize!');
     }).on('auth', () => {
       logger.log('RCON', "Authed!");
     }).on('end', function() {
