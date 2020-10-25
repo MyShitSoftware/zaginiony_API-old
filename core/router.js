@@ -3,7 +3,6 @@ const app = express();
 const port = 3080;
 const logger = require('../core/logger');
 const cors = require('cors');
-const mysqlAdmin = require('node-mysql-admin');
 const routing = require('../config/router');
 const services = require('../config/services');
 
@@ -34,8 +33,6 @@ app.use((req, res, next) => {
 app.get('/', async (req, res) => {
   res.json({ success: true });
 });
-
-app.use(mysqlAdmin(app));
 
 app.use(async function(req, res, next){
   let url = req.url.split('/');
