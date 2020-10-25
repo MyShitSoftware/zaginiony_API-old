@@ -40,7 +40,7 @@ class query {
             players_formatted.push(el);
           }
         });
-        result.numplayers = players_formatted.length;
+        result.numplayers = players_formatted[0] == "No Players Connected " ? 0 : players_formatted.length;
         result.players = players_formatted;
       }
       else {

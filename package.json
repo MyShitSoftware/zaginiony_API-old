@@ -17,6 +17,7 @@
     "events": "^3.2.0",
     "express": "^4.17.1",
     "gamedig": "^2.0.23",
+    "mysql": "^2.18.1",
     "net": "^1.0.2",
     "node-mysql-admin": "^0.1.8",
     "nodemon": "^2.0.4",

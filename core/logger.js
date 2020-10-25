@@ -6,5 +6,9 @@ module.exports = {
     log: function(trigger, message) {
         console.log("\x1b[90m[" + new Date().toLocaleTimeString() + "]\x1b[96m[" + trigger + "]"+ type_info[0] +" \x1b[0m" + message);
         return 1;
+    },
+    error: function(trigger, message) {
+        console.log("\x1b[90m[" + new Date().toLocaleTimeString() + "]\x1b[96m[" + trigger + "]"+ type_info[3] +" \x1b[0m" + message);
+        return 1;
     }
 }
