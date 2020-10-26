@@ -9,10 +9,6 @@ const api = {
       }
     }
   },
-  get_config: {
-    provider: 'get_config',
-    method: 'GET'
-  },
   get_shop_items: {
     provider: 'get_shop_items',
     method: 'GET'
