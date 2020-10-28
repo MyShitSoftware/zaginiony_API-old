@@ -1,10 +1,15 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
 const app = express();
 const port = 3080;
 const logger = require('../core/logger');
 const cors = require('cors');
 const routing = require('../config/router');
 const services = require('../config/services');
+
+const user = {};
+user.session = undefined;
 
 var whitelist = ['http://localhost', 'http://localhost:3000', 'http://localhost:3080', 'http://localhost:8000', 'http://192.168.194.34:8000']
 var corsOptions = {
@@ -24,6 +29,11 @@ var corsOptions = {
     optionsSuccessStatus: 200,
     credentials: true
 }
+
+app.use(cookieParser());
+app.use(express.json());
+app.disable('x-powered-by');
+
 app.use(cors(corsOptions));
 app.use((req, res, next) => {
   logger.log('API', "URL: "+ req.url + " TYPE: " + req.method);
@@ -45,18 +55,49 @@ app.use(async function(req, res, next){
       res.json({ success: false, error: 'Wrong method!' });
     }
     else {
-      if ( provider.method === 'GET' ) {
-        if (services[url[0]][provider.provider]) {
-          const response = await services[url[0]][provider.provider](url[2]);
-          res.json( response );
-        }
-        else {
-          res.status(500);
-          res.json({ success: false, error: 'Interial error' });
-        }
+      if ( provider.auth === true && !user.session) {
+        res.status(401);
+        res.json({ success: false, error: "You don't have access to be here!" });
       }
-      else if ( provider.method === 'POST' ) {
-        res.json({ success: true });
+      else {
+        if ( provider.method === 'GET' ) {
+          if (services[url[0]][provider.provider]) {
+            const response = await services[url[0]][provider.provider](url[2]);
+            res.json( response );
+          }
+          else {
+            res.status(500);
+            res.json({ success: false, error: 'Interial error' });
+          }
+        }
+        else if ( provider.method === 'POST' ) {
+          if (services[url[0]][provider.provider]) {
+            const validator = provider.validator;
+            const err = {};
+
+            if(validator) {
+              Object.keys(validator).forEach((key) => {
+                if (validator[key].require == true && !req.body[key]) {
+                  err.err = 1;
+                  err.code = `Value ${key} missing!`;
+                }
+              });
+            }
+
+            if(err.err) {
+              res.json({ success: false, err: err.code })
+            }
+            else {
+              const session = {};
+              const response = await services[url[0]][provider.provider]({ data: req.body, session: session, req, res });
+              res.json( response );
+            }
+          }
+          else {
+            res.status(500);
+            res.json({ success: false, error: 'Interial error' });
+          }
+        }
       }
     }
   } else {

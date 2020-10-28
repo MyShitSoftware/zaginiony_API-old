@@ -1,7 +1,9 @@
 const api = require('../provider/api');
+const acp = require('../provider/acp');
 
 const routing = {
-  'api': api
+  'api': api,
+  'admin': acp
 }
 
 module.exports = routing;
