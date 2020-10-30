@@ -49,15 +49,21 @@ module.exports = {
       }
     }
     else {
+      logger.debug('MySQL', query);
       const result = await new Promise((resolve, reject) => {
         conn.query(query, (error, result, fields) => {
           if (error) resolve({ success: false });
           else {
-            resolve(result);
+            resolve({ success: true, result: result });
           }
         });
       });
-      return { success: true, result: result };
+      if(result && result.success) {
+        return { success: true, result: result.result };
+      }
+      else {
+        return { success: false }
+      }
     }
   }
 }
