@@ -1,15 +1,17 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const session = require('express-session');
 const app = express();
 const port = 3080;
 const logger = require('../core/logger');
 const cors = require('cors');
 const routing = require('../config/router');
 const services = require('../config/services');
+const redis = require("redis");
+const client = redis.createClient();
 
-const user = {};
-user.session = undefined;
+client.on("error", function(error) {
+  logger.error('REDIS', error);
+});
 
 var whitelist = ['http://localhost', 'http://localhost:3000', 'http://localhost:3080', 'http://localhost:8000', 'http://192.168.194.34:8000']
 var corsOptions = {
@@ -55,14 +57,25 @@ app.use(async function(req, res, next){
       res.json({ success: false, error: 'Wrong method!' });
     }
     else {
-      if ( provider.auth === true && !user.session) {
+      const user = req.cookies['user_session'];
+      let session = null;
+      if (user) {
+        session = await new Promise((resolve) => {
+          client.get(user, (err, data) => {
+            if (err) resolve(null);
+            resolve(data);
+          });
+        });
+      }
+      if ( provider.auth === true && !session) {
         res.status(401);
         res.json({ success: false, error: "You don't have access to be here!" });
       }
       else {
+        session = JSON.parse(session)
         if ( provider.method === 'GET' ) {
           if (services[url[0]][provider.provider]) {
-            const response = await services[url[0]][provider.provider](url[2]);
+            const response = await services[url[0]][provider.provider]({ data: url[2], session, req, res });
             res.json( response );
           }
           else {
@@ -88,8 +101,7 @@ app.use(async function(req, res, next){
               res.json({ success: false, err: err.code })
             }
             else {
-              const session = {};
-              const response = await services[url[0]][provider.provider]({ data: req.body, session: session, req, res });
+              const response = await services[url[0]][provider.provider]({ data: req.body, session, req, res });
               res.json( response );
             }
           }
