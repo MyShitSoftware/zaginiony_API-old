@@ -16,6 +16,7 @@ class query {
       logger.log('RCON', "Unable to connect!");
     });
   }
+
   async showInfo() {
     let result = {};
     let players_formatted = [];
@@ -60,6 +61,11 @@ class query {
     }
     return result;
   }
+
+  disconnect() {
+    this.#conn.disconnect();
+  }
+
   connectToRcon(address, rcon_port, rcon_pass) {
     this.#conn = new Rcon(address, rcon_port, rcon_pass);
     this.#conn.connect();

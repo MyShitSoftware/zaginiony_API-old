@@ -7,12 +7,12 @@ const api = {
   management_sales_report: {
     provider: 'management_sales_report',
     method: 'GET',
-    auth: false
+    auth: true
   },
   management_server_list: {
     provider: 'management_server_list',
     method: 'GET',
-    auth: false
+    auth: true
   }
 };
 

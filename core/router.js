@@ -57,7 +57,7 @@ app.use(async function(req, res, next){
       res.json({ success: false, error: 'Wrong method!' });
     }
     else {
-      const user = req.cookies['user_session'];
+      const user = req.header('x-auth-token');;
       let session = null;
       if (user) {
         session = await new Promise((resolve) => {

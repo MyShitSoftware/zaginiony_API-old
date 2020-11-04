@@ -48,6 +48,7 @@ module.exports = {
             result.push({ id: server.id, ip: server.ip, query_port: server.query_port, rcon_port: server.rcon_port, category: server.category, name: 'OFFLINE', status: 0 });
             resolve(query);
           }
+          tool.disconnect();
         })
       );
     });

@@ -61,9 +61,9 @@ module.exports = {
         bcrypt.compare(password, user.result[0].pass, function(err, result) {
           if(result) {
             let user_session = makeid(64);
-            client.set(user_session, JSON.stringify({ id: user.result[0].id, user: user.result[0].user, email: user.result[0].email, avatar: user.result[0].avatar, permission: user.result[0].permission, steam_id: user.result[0].steam_id }));
-            res.cookie('user_session', user_session, { maxAge: 900000, httpOnly: true });
-            resolve({ success: true, message: 'Login success' });
+            client.set(user_session, JSON.stringify({ id: user.result[0].id, token: user_session, user: user.result[0].user, email: user.result[0].email, avatar: user.result[0].avatar, permission: user.result[0].permission, steam_id: user.result[0].steam_id }));
+            res.setHeader('x-auth-token', user_session);
+            resolve({ success: true, message: 'Login success', token: user_session });
           }
           else {
             console.log('no')
