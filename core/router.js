@@ -13,7 +13,7 @@ client.on("error", function(error) {
   logger.error('REDIS', error);
 });
 
-var whitelist = ['http://localhost', 'http://localhost:3000', 'http://localhost:3080', 'http://localhost:8000', 'http://192.168.194.34:8000']
+var whitelist = ['http://localhost', 'http://localhost:3000', 'http://localhost:3080', 'http://localhost:8000', 'http://192.168.194.34:8000', 'https://zaginiony-swiat.pl']
 var corsOptions = {
     origin: function (origin, callback) {
         if(!origin) {
