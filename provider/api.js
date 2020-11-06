@@ -1,7 +1,8 @@
 const querier = require('../modules/querier');
 const mysql = require('../core/mysql');
+const p24_api = require('../core/p24-api');
+const logger = require('../core/logger');
 const bcrypt = require('bcrypt');
-const srv = [];
 const saltRounds = 10;
 const redis = require("redis");
 const client = redis.createClient();
@@ -10,13 +11,20 @@ client.on("error", function(error) {
   logger.error('REDIS', error);
 });
 
-connect_to_servers();
-
 module.exports = {
   async get_status({ data: id }) {
     const servers_id = id;
     const status = [];
     const status_promise = [];
+    const srv = [];
+    const config = await mysql.query('SELECT * FROM servers');
+    config.result.forEach((config_elem) => {
+      const tool = new querier(config_elem.server_ip, config_elem.query_port, config_elem.rcon_port, config_elem.rcon_password);
+      srv.push({
+        type: config_elem.type,
+        querier: tool
+      });
+    });
 
     switch(servers_id) {
       case '1':
@@ -24,6 +32,7 @@ module.exports = {
           if( elem.type === 1) {
             status_promise.push( new Promise(async (resolve) => {
               const query = await elem.querier.showInfo();
+              elem.querier.disconnect();
               resolve(query)
               status.push(query)
             }) );
@@ -36,6 +45,7 @@ module.exports = {
           if( elem.type === 2) {
             status_promise.push( new Promise(async (resolve) => {
               const query = await elem.querier.showInfo();
+              elem.querier.disconnect();
               resolve(query)
               status.push(query)
             }) );
@@ -66,7 +76,6 @@ module.exports = {
             resolve({ success: true, message: 'Login success', token: user_session });
           }
           else {
-            console.log('no')
             resolve({ success: false, error: 'Wrong password!' });
           }
         });
@@ -83,26 +92,21 @@ module.exports = {
         resolve({ success: true, hash });
       });
     });
+  },
+
+  async create_payment({ data: { shopItemPlayerNick, shopItemPlayerDsc, shopItemMonths, ShopItemServer, buyItemId, shopItemPlayerEmail, shopItemPlayerSum } }) {
+    const p24 = new p24_api(true);
+
+    return await p24.createTransaction('Zamówienie 12345', Number(shopItemPlayerSum)*100, 'Konto VIP na serwerze steam + mods', shopItemPlayerEmail);
   }
 }
 
 function makeid(length) {
-  var result           = '';
-  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  var charactersLength = characters.length;
-  for ( var i = 0; i < length; i++ ) {
+  const result           = '';
+  const characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for ( const i = 0; i < length; i++ ) {
      result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
-}
-
-async function connect_to_servers() {
-  const config = await mysql.query('SELECT * FROM servers');
-  config.result.forEach((config_elem) => {
-    const tool = new querier(config_elem.server_ip, config_elem.query_port, config_elem.rcon_port, config_elem.rcon_password);
-    srv.push({
-      type: config_elem.type,
-      querier: tool
-    });
-  });
 }

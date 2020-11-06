@@ -37,6 +37,7 @@ module.exports = {
     const status = await mysql.query('SELECT id, server_ip as ip, query_port, rcon_port, type as category, rcon_password FROM servers');
     status.result.forEach((server) => {
       const tool = new querier(server.ip, server.query_port, server.rcon_port, server.rcon_password);
+      tool.connect();
       promises.push(
         new Promise(async (resolve) => {
           const query = await tool.showInfo();

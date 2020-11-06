@@ -1,12 +1,8 @@
 const mysql = require('mysql');
 const logger = require('../core/logger');
+const { config } = require('../config/mysql.conf')
 
-var conn = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : '',
-  database : 'ark_panel'
-});
+var conn = mysql.createConnection(config);
 
 conn.connect(function(err) {
   if (err) {

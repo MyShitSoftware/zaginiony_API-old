@@ -64,6 +64,11 @@ class query {
 
   disconnect() {
     this.#conn.disconnect();
+    this.#auth = 0;
+  }
+
+  connect() {
+    this.#conn.connect();
   }
 
   connectToRcon(address, rcon_port, rcon_pass) {
@@ -77,6 +82,7 @@ class query {
       this.#auth = 1;
     }).on('end', function() {
       logger.log('RCON', "Socket closed!");
+      this.#conn.connect();
     }).on('error', (err) => {
       this.#conn.disconnect();
     });

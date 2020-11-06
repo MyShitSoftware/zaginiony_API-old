@@ -34,6 +34,11 @@ const api = {
         require: true
       }
     }
+  },
+  create_payment: {
+    provider: 'create_payment',
+    method: 'GET',
+    auth: false
   }
 };
 
