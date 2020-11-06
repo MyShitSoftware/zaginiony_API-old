@@ -102,7 +102,7 @@ module.exports = {
 }
 
 function makeid(length) {
-  const result           = '';
+  let result           = '';
   const characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const charactersLength = characters.length;
   for ( const i = 0; i < length; i++ ) {
