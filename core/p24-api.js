@@ -32,8 +32,8 @@ class p24 {
         "email": email,
         "country": country,
         "language": language,
-        "urlReturn": "http://localhost:8000",
-        "urlStatus": "http://localhost:3080/api/git",
+        "urlReturn": "https://zaginiony-swiat.pl/",
+        "urlStatus": "https://api.zaginiony-swiat.pl/api/confirm_transaction",
         "sign": hash,
         "encoding": encoding
       }, {
@@ -49,6 +49,39 @@ class p24 {
         else {
           logger.debug('p24', 'Cannot get token')
           resolve({ success: false, error: 'Cannot get token' })
+        }
+      })
+      .catch(function (error) {
+        logger.error('p24', 'Internal Error')
+        resolve({ success: false, error: error.response.data })
+      });
+    })
+
+    return token;
+  }
+  async confirmTransaction(transactionId, amount, currency, orderId, sign) {
+    const token = await new Promise((resolve) => {
+      axios.put(`${this.config.url}/transaction/verify`, {
+        "merchantId": this.config.merchantId,
+        "posId": this.config.merchantId,
+        "sessionId": transactionId,
+        "amount": amount,
+        "currency": currency,
+        "orderId": orderId,
+        "sign": sign
+      }, {
+        headers: {
+          'Authorization': `Basic ${this.auth}`
+        }
+      })
+      .then((response) => {
+        if (!response.data.code) {
+          logger.debug('p24', 'Payment verified')
+          resolve({ success: true })
+        }
+        else {
+          logger.debug('p24', 'Error while verifying payment')
+          resolve({ success: false })
         }
       })
       .catch(function (error) {

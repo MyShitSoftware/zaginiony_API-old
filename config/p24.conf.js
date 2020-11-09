@@ -9,6 +9,6 @@ module.exports = {
     url: 'https://secure.przelewy24.pl/api/v1',
     merchantId: 127342,
     reportKey: '58646945be57ed62031e9de55961c68c',
-    crc: 'f990741a297a3338 '
+    crc: 'f990741a297a3338'
   }
 };

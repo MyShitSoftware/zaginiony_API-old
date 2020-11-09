@@ -16,13 +16,16 @@ conn.connect(function(err) {
 module.exports = {
   async query(query, data) {
     if(data) {
-      query = await new Promise((resolve, reject) => {
-        Object.keys(data).forEach((key) => {
-          resolve(query.replace(`$[${key}]`, `'${data[key]}'`));
+      query = await new Promise((resolve) => {
+        Object.keys(data).forEach((key, idx, array) => {
+          query = query.replace(`$[${key}]`, `'${data[key]}'`)
+          if (idx === array.length - 1){
+            resolve(query);
+          }
         })
       });
       logger.debug('MySQL', query);
-      const result = await new Promise((resolve, reject) => {
+      const result = await new Promise((resolve) => {
         conn.query(query, (error, result) => {
           if (error) {
             resolve({ success: false, err: error });
@@ -32,7 +35,7 @@ module.exports = {
               resolve({ success: true, result: result });
             }
             else {
-              resolve({ success: false });
+              resolve({ success: true, id: result.insertId });
             }
           }
         });
