@@ -86,6 +86,7 @@ class p24 {
       })
       .catch(function (error) {
         logger.error('p24', 'Internal Error')
+        console.log(error)
         resolve({ success: false, error: error.response.data })
       });
     })
