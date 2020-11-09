@@ -111,7 +111,7 @@ module.exports = {
   },
   async confirm_transaction({ data: { merchantId, posId, sessionId, amount, originAmount, currency, orderId, methodId, statement, sign } }) {
     const p24 = new p24_api(true);
-    return p24.confirmTransaction(sessionId, amount, currency, orderId, sign);
+    return p24.confirmTransaction(sessionId, amount, currency, orderId);
   }
 }
 
