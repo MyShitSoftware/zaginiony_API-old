@@ -111,7 +111,13 @@ module.exports = {
   },
   async confirm_transaction({ data: { merchantId, posId, sessionId, amount, originAmount, currency, orderId, methodId, statement, sign } }) {
     const p24 = new p24_api(true);
-    return p24.confirmTransaction(sessionId, amount, currency, orderId);
+    const confirm = await p24.confirmTransaction(sessionId, amount, currency, orderId);
+    const sessionIdNew = sessionId.replace('Zamówienie: ', '');
+    if ( confirm.success ) {
+      mysql.query('UPDATE orders SET payment_proceed = 1 WHERE id = $[sessionIdNew]', { sessionIdNew });
+      return { success: true };
+    }
+    return { success: false };
   }
 }
 
