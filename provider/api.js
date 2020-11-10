@@ -5,6 +5,7 @@ const logger = require('../core/logger');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const redis = require("redis");
+const p24 = require('../core/p24-api');
 const client = redis.createClient();
 
 client.on("error", function(error) {
@@ -94,16 +95,35 @@ module.exports = {
     });
   },
 
-  async create_payment({ data: { shopItemPlayerNick, shopItemPlayerDsc, shopItemMonths, ShopItemServer, buyItemId, shopItemPlayerEmail, shopItemPlayerSum } }) {
-    const p24 = new p24_api(true);
+  async create_payment({ data: { buyItemName, shopItemPlayerNick, shopItemPlayerDsc, shopItemMonths, ShopItemServer, buyItemId, shopItemPlayerEmail, shopItemPlayerSum } }) {
+    const p24 = new p24_api(false);
+    const id = await mysql.query(`INSERT INTO orders
+    (date, player_server_name, player_discord_name, buy_item, buy_item_time, pay_price, payment_proceed, proceed_srv, proceed_dsc, buy_srv_type, email)
+    VALUES (NOW(), $[player_server_name], $[player_discord_name], $[buy_item], $[buy_item_time], $[pay_price], 0, 0, 0, $[ShopItemServer], $[email])`,
+    { player_server_name: shopItemPlayerNick, player_discord_name: shopItemPlayerDsc, buy_item: buyItemId, buy_item_time: shopItemMonths, pay_price: shopItemPlayerSum, ShopItemServer, email: shopItemPlayerEmail });
 
-    return await p24.createTransaction('Zamówienie 12345', Number(shopItemPlayerSum)*100, 'Konto VIP na serwerze steam + mods', shopItemPlayerEmail);
+    if(id) {
+      return await p24.createTransaction(`Zamówienie: ${id.id}`, Number(shopItemPlayerSum)*100, buyItemName, shopItemPlayerEmail);
+    }
+    else {
+      return { success: false }
+    }
+  },
+  async confirm_transaction({ data: { merchantId, posId, sessionId, amount, originAmount, currency, orderId, methodId, statement, sign } }) {
+    const p24 = new p24_api(false);
+    const confirm = await p24.confirmTransaction(sessionId, amount, currency, orderId);
+    const sessionIdNew = sessionId.replace('Zamówienie: ', '');
+    if ( confirm.success ) {
+      mysql.query('UPDATE orders SET payment_proceed = 1 WHERE id = $[sessionIdNew]', { sessionIdNew });
+      return { success: true };
+    }
+    return { success: false };
   }
 }
 
-function makeid(length) {
+function makeid(length, type = 0) {
   let result           = '';
-  const characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const characters = type === 0 ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' : '0123456789';
   const charactersLength = characters.length;
   for ( let i = 0; i < length; i++ ) {
      result += characters.charAt(Math.floor(Math.random() * charactersLength));
