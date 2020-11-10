@@ -59,7 +59,10 @@ class p24 {
 
     return token;
   }
-  async confirmTransaction(transactionId, amount, currency, orderId, sign) {
+  async confirmTransaction(transactionId, amount, currency, orderId) {
+    const sign = {"sessionId":transactionId,"orderId":orderId,"amount":amount,"currency":currency,"crc":this.config.crc};
+    let hash = crypto.createHash('sha384').update(JSON.stringify(sign)).digest("hex");
+
     const token = await new Promise((resolve) => {
       axios.put(`${this.config.url}/transaction/verify`, {
         "merchantId": this.config.merchantId,
@@ -68,7 +71,7 @@ class p24 {
         "amount": amount,
         "currency": currency,
         "orderId": orderId,
-        "sign": sign
+        "sign": hash
       }, {
         headers: {
           'Authorization': `Basic ${this.auth}`
@@ -86,6 +89,7 @@ class p24 {
       })
       .catch(function (error) {
         logger.error('p24', 'Internal Error')
+        console.log(error)
         resolve({ success: false, error: error.response.data })
       });
     })

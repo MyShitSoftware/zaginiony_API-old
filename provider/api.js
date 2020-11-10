@@ -96,7 +96,7 @@ module.exports = {
   },
 
   async create_payment({ data: { buyItemName, shopItemPlayerNick, shopItemPlayerDsc, shopItemMonths, ShopItemServer, buyItemId, shopItemPlayerEmail, shopItemPlayerSum } }) {
-    const p24 = new p24_api(true);
+    const p24 = new p24_api(false);
     const id = await mysql.query(`INSERT INTO orders
     (date, player_server_name, player_discord_name, buy_item, buy_item_time, pay_price, payment_proceed, proceed_srv, proceed_dsc, buy_srv_type, email)
     VALUES (NOW(), $[player_server_name], $[player_discord_name], $[buy_item], $[buy_item_time], $[pay_price], 0, 0, 0, $[ShopItemServer], $[email])`,
@@ -110,8 +110,14 @@ module.exports = {
     }
   },
   async confirm_transaction({ data: { merchantId, posId, sessionId, amount, originAmount, currency, orderId, methodId, statement, sign } }) {
-    const p24 = new p24_api(true);
-    return p24.confirmTransaction(sessionId, amount, currency, orderId, sign);
+    const p24 = new p24_api(false);
+    const confirm = await p24.confirmTransaction(sessionId, amount, currency, orderId);
+    const sessionIdNew = sessionId.replace('Zamówienie: ', '');
+    if ( confirm.success ) {
+      mysql.query('UPDATE orders SET payment_proceed = 1 WHERE id = $[sessionIdNew]', { sessionIdNew });
+      return { success: true };
+    }
+    return { success: false };
   }
 }
 
