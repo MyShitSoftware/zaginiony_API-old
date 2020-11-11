@@ -87,9 +87,9 @@ module.exports = {
     }
   },
 
-  async gen_pass({ data: { password } }) {
+  async gen_pass({ data }) {
     return new Promise(async (resolve) => {
-      bcrypt.hash(password, saltRounds, function(err, hash) {
+      bcrypt.hash(data, saltRounds, function(err, hash) {
         resolve({ success: true, hash });
       });
     });
