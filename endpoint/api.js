@@ -26,14 +26,8 @@ const api = {
   },
   gen_pass: {
     provider: 'gen_pass',
-    method: 'POST',
+    method: 'GET',
     auth: false,
-    validator: {
-      password: {
-        type: 'password',
-        require: true
-      }
-    }
   },
   create_payment: {
     provider: 'create_payment',
