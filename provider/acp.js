@@ -6,7 +6,31 @@ module.exports = {
     return { success:true, result: session }
   },
 
-  async management_sales_report() {
+  async management_sales_report({ data }) {
+    console.log(data)
+    if (data) {
+      const response = await mysql.query(`
+      SELECT
+        o.id,
+        DATE_FORMAT(o.date, '%Y/%m/%d %H:%i:%s') as date,
+        o.player_server_name,
+        o.player_discord_name,
+        si.title as buy_item,
+        o.buy_item_time,
+        o.pay_price,
+        o.payment_proceed,
+        o.proceed_srv,
+        o.proceed_dsc,
+        o.buy_srv_type
+      FROM orders o
+      LEFT JOIN shop_items si on o.buy_item=si.id
+      WHERE o.id = $[id]
+      `, { id: data });
+      if( response.success ) {
+        return { success: true, response: response.result[0] };
+      }
+      return { success: false };
+    }
     const response = await mysql.query(`
     SELECT
       o.id,
@@ -23,12 +47,24 @@ module.exports = {
     FROM orders o
     LEFT JOIN shop_items si on o.buy_item=si.id
     `);
-    if( response.success ) {
+    if (response.success) {
       return { success: true, response: response.result };
     }
-    else {
-      return { success: false };
+    return { success: false };
+  },
+
+  async management_sales_report_update({ data: { id, payment_proceed, proceed_srv, proceed_dsc } }) {
+    const response = await mysql.query(`
+    UPDATE orders SET
+      payment_proceed = $[payment_proceed],
+      proceed_srv = $[proceed_srv],
+      proceed_dsc = $[proceed_dsc]
+    WHERE id = $[id]
+    `, { id, payment_proceed, proceed_srv, proceed_dsc });
+    if (response.success) {
+      return { success: true };
     }
+    return { success: false };
   },
 
   async management_server_list() {
