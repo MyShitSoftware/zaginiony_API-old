@@ -1,5 +1,6 @@
 const mysql = require('../core/mysql');
 const querier = require('../modules/querier');
+const moment = require('moment');
 
 module.exports = {
   async get_user_details({ session }) {
@@ -90,5 +91,25 @@ module.exports = {
     });
     await Promise.all(promises);
     return { success:true, response: result };
-  }
+  },
+
+  async get_players() {
+    const result = await mysql.query(`
+    SELECT p.id, p.nick, p.steam_id, p.first_login, p.last_login, s.server_name as last_server_name, p.last_server_type
+    FROM players p
+    LEFT JOIN servers s ON p.last_server_id = s.id
+    `);
+    result.result = result.result.map((key, index) => {
+      const last_login_time = moment().subtract(15, "minutes");
+      if(moment(key.last_login) > last_login_time) {
+        key.online = 1;
+      } else {
+        key.online = 0;
+      }
+      key.first_login = moment(key.first_login).format("YYYY-MM-DD HH:mm:ss");
+      key.last_login = moment(key.last_login).format("YYYY-MM-DD HH:mm:ss");
+      return key;
+    });
+    return { success:true, response: result.result }
+  },
 }

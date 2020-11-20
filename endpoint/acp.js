@@ -37,6 +37,11 @@ const api = {
       },
     },
   },
+  get_players: {
+    provider: 'get_players',
+    method: 'GET',
+    auth: true,
+  },
 };
 
 module.exports = api;
