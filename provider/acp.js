@@ -7,7 +7,6 @@ module.exports = {
   },
 
   async management_sales_report({ data }) {
-    console.log(data)
     if (data) {
       const response = await mysql.query(`
       SELECT
