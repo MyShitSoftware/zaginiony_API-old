@@ -22,8 +22,10 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "gamedig": "^2.0.23",
+    "moment": "^2.29.1",
     "mysql": "^2.18.1",
     "net": "^1.0.2",
+    "node-cron": "^2.0.3",
     "nodemon": "^2.0.4",
     "redis": "^3.0.2",
     "util": "^0.12.3"

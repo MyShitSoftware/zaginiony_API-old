@@ -34,8 +34,11 @@ module.exports = {
             if(result.length) {
               resolve({ success: true, result: result });
             }
-            else {
+            else if(result.insertId) {
               resolve({ success: true, id: result.insertId });
+            }
+            else {
+              resolve({ success: false, error: 'no data' });
             }
           }
         });
