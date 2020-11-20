@@ -1,5 +1,4 @@
 const mysql = require('../core/mysql');
-const querier = require('../modules/querier');
 const moment = require('moment');
 
 module.exports = {
@@ -68,29 +67,24 @@ module.exports = {
   },
 
   async management_server_list() {
-    const result = [];
-    const promises = [];
-    const status = await mysql.query('SELECT id, server_ip as ip, query_port, rcon_port, type as category, rcon_password FROM servers');
-    status.result.forEach((server) => {
-      const tool = new querier(server.ip, server.query_port, server.rcon_port, server.rcon_password);
-      tool.connect();
-      promises.push(
-        new Promise(async (resolve) => {
-          const query = await tool.showInfo();
-          if(query.status) {
-            result.push({ id: server.id, ip: server.ip, query_port: server.query_port, rcon_port: server.rcon_port, category: server.category, name: query.name, status: 1 });
-            resolve(query);
-          }
-          else {
-            result.push({ id: server.id, ip: server.ip, query_port: server.query_port, rcon_port: server.rcon_port, category: server.category, name: 'OFFLINE', status: 0 });
-            resolve(query);
-          }
-          tool.disconnect();
-        })
-      );
-    });
-    await Promise.all(promises);
-    return { success:true, response: result };
+    const status = await mysql.query(`
+    SELECT
+      id,
+      s.server_ip as ip,
+      s.query_port,
+      s.rcon_port,
+      s.type as category,
+      s.server_name as name,
+      (
+        SELECT server_status
+        FROM stats
+        WHERE server_id = s.id
+        ORDER BY date DESC
+        LIMIT 1
+      ) as status
+    FROM servers s
+    `);
+    return { success:true, response: status.result };
   },
 
   async get_players({ data: { online } }) {
