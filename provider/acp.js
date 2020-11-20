@@ -93,14 +93,28 @@ module.exports = {
     return { success:true, response: result };
   },
 
-  async get_players() {
-    const result = await mysql.query(`
-    SELECT p.id, p.nick, p.steam_id, p.first_login, p.last_login, s.server_name as last_server_name, p.last_server_type
-    FROM players p
-    LEFT JOIN servers s ON p.last_server_id = s.id
-    `);
+  async get_players({ data: { online } }) {
+    const last_login_time = moment().subtract(15, "minutes");
+    let result;
+    if(online) {
+      result = await mysql.query(`
+      SELECT p.id, p.nick, p.steam_id, p.first_login, p.last_login, s.server_name as last_server_name, p.last_server_type
+      FROM players p
+      LEFT JOIN servers s ON p.last_server_id = s.id
+      WHERE last_login > $[last_time]
+      `, { last_time: last_login_time.format("YYYY-MM-DD HH:mm:ss") });
+    }
+    else {
+      result = await mysql.query(`
+      SELECT p.id, p.nick, p.steam_id, p.first_login, p.last_login, s.server_name as last_server_name, p.last_server_type
+      FROM players p
+      LEFT JOIN servers s ON p.last_server_id = s.id
+      `);
+    }
+    if(!result.success) {
+      return { success:false, error: 'No players available' }
+    }
     result.result = result.result.map((key, index) => {
-      const last_login_time = moment().subtract(15, "minutes");
       if(moment(key.last_login) > last_login_time) {
         key.online = 1;
       } else {

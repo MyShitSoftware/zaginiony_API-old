@@ -39,8 +39,14 @@ const api = {
   },
   get_players: {
     provider: 'get_players',
-    method: 'GET',
+    method: 'POST',
     auth: true,
+    validator: {
+      online: {
+        type: 'number',
+        require: false
+      },
+    },
   },
 };
 
