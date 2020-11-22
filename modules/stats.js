@@ -32,6 +32,7 @@ async function gen_stats () {
         server_info.ping = null;
         server_info.maxplayers = null;
         server_info.numplayers = null;
+        server_info.players = [];
         server_info.name = config_elem.server_name ? config_elem.server_name : 'Brak nazwy serwera w pamięci';
       }
 
@@ -48,41 +49,10 @@ async function gen_stats () {
         `, { server_name: server_info.name, id: config_elem.id });
       }
 
-      server_info.players.forEach((player) => {
-        if(player[1]) {
-          if(!players_database.length) {
-            mysql.query(`
-            INSERT INTO players
-            (
-              nick,
-              steam_id,
-              first_login,
-              last_login,
-              last_server_id,
-              last_server_type
-            )
-            VALUES
-            (
-              $[nick],
-              $[steam_id],
-              NOW(),
-              NOW(),
-              $[server_id],
-              $[server_type]
-            )
-            `, { nick: player[0], steam_id: player[1], server_id: server_info.id, server_type: config_elem.type });
-          } else {
-            const player_found = players_database.find(player_database => Number(player_database.steam_id) === Number(player[1]));
-            if (player_found) {
-              mysql.query(`
-              UPDATE players
-              SET
-                last_login = NOW(),
-                last_server_id = $[server_id],
-                last_server_type = $[server_type]
-              WHERE steam_id = $[steam_id]
-              `, { steam_id: player[1], server_id: server_info.id, server_type: config_elem.type });
-            } else {
+      if (server_info.players && server_info.players.length) {
+        server_info.players.forEach((player) => {
+          if(player[1]) {
+            if(!players_database.length) {
               mysql.query(`
               INSERT INTO players
               (
@@ -103,10 +73,43 @@ async function gen_stats () {
                 $[server_type]
               )
               `, { nick: player[0], steam_id: player[1], server_id: server_info.id, server_type: config_elem.type });
+            } else {
+              const player_found = players_database.find(player_database => Number(player_database.steam_id) === Number(player[1]));
+              if (player_found) {
+                mysql.query(`
+                UPDATE players
+                SET
+                  last_login = NOW(),
+                  last_server_id = $[server_id],
+                  last_server_type = $[server_type]
+                WHERE steam_id = $[steam_id]
+                `, { steam_id: player[1], server_id: server_info.id, server_type: config_elem.type });
+              } else {
+                mysql.query(`
+                INSERT INTO players
+                (
+                  nick,
+                  steam_id,
+                  first_login,
+                  last_login,
+                  last_server_id,
+                  last_server_type
+                )
+                VALUES
+                (
+                  $[nick],
+                  $[steam_id],
+                  NOW(),
+                  NOW(),
+                  $[server_id],
+                  $[server_type]
+                )
+                `, { nick: player[0], steam_id: player[1], server_id: server_info.id, server_type: config_elem.type });
+              }
             }
           }
-        }
-      })
+        });
+      }
 
       mysql.query(`
       INSERT INTO stats
