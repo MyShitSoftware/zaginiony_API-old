@@ -54,6 +54,7 @@ module.exports = {
     result.forEach((data) => {
       for(let i=0; i<24; i++) {
         if(!data.value[i]) data.value[i] = 0;
+        if(i===24) data.value[0] = data.value[i];
       }
     });
 
