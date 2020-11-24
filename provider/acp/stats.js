@@ -54,7 +54,10 @@ module.exports = {
     result.forEach((data) => {
       for(let i=0; i<24; i++) {
         if(!data.value[i]) data.value[i] = 0;
-        if(i===24) data.value[0] = data.value[i];
+      }
+      if(data.value['00'] !== undefined) {
+        data.value[0] = data.value['00'];
+        delete data.value['00'];
       }
     });
 
@@ -63,6 +66,7 @@ module.exports = {
     chartdata.datasets = [];
 
     result.map((data) => {
+      console.log(data.value)
       const values = Object.values(data.value)
       chartdata.datasets.push({ label: data.server_name, data: values });
     });
