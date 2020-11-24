@@ -62,7 +62,8 @@ module.exports = {
     chartdata.datasets = [];
 
     result.map((data) => {
-      chartdata.datasets.push({ label: data.server_name, data: Object.values(data.value) });
+      const values = Object.values(data.value)
+      chartdata.datasets.push({ label: data.server_name, data: values });
     });
 
     return { success:true, response: chartdata }
