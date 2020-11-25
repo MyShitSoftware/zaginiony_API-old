@@ -5,6 +5,7 @@ const moment = require('moment');
 module.exports = {
   async get24() {
     const date = moment().format("YYYY-MM-DD");
+    const hour = moment().format("H");
     const result = {};
     const hours24 = await mysql.query(`
     SELECT
@@ -26,8 +27,12 @@ module.exports = {
     GROUP BY s.id
     `, { date });
 
-    result.labels = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+    result.labels = [];
     result.datasets = [];
+
+    for(let i=0; i<=hour; i++) {
+      result.labels.push(i);
+    }
 
     hours24.result.map((data) => {
       const old_values = JSON.parse(data.value);
@@ -36,7 +41,7 @@ module.exports = {
         values[old_values[key].time] = old_values[key].online_players;
       });
 
-      for(let i=0; i<result.labels.length; i++) {
+      for(let i=0; i<hour; i++) {
         if(!values[i]) values[i] = 0;
       }
       result.datasets.push({ label: data.server_name, data: Object.values(values) });
