@@ -19,7 +19,7 @@ async function gen_stats () {
   const server_status = {};
   const players_database = (await mysql.query(`SELECT * FROM players`)).result;
 
-  await new Promise((resolve) => {
+  await new Promise(async (resolve) => {
     const resolve_number = config.result.length;
     let item = 1;
     config.result.forEach(async (config_elem) => {
@@ -42,7 +42,7 @@ async function gen_stats () {
       server_status[config_elem.type][server_info.id] = server_info;
 
       if (config_elem.server_name !== server_info.name) {
-        mysql.query(`
+        await mysql.query(`
         UPDATE servers
         SET server_name = $[server_name]
         WHERE id = $[id]
@@ -50,10 +50,10 @@ async function gen_stats () {
       }
 
       if (server_info.players && server_info.players.length) {
-        server_info.players.forEach((player) => {
+        server_info.players.map(async (player) => {
           if(player[1]) {
             if(!players_database.length) {
-              mysql.query(`
+              await mysql.query(`
               INSERT INTO players
               (
                 nick,
@@ -76,7 +76,7 @@ async function gen_stats () {
             } else {
               const player_found = players_database.find(player_database => Number(player_database.steam_id) === Number(player[1]));
               if (player_found) {
-                mysql.query(`
+                await mysql.query(`
                 UPDATE players
                 SET
                   last_login = NOW(),
@@ -85,7 +85,7 @@ async function gen_stats () {
                 WHERE steam_id = $[steam_id]
                 `, { steam_id: player[1], server_id: server_info.id, server_type: config_elem.type });
               } else {
-                mysql.query(`
+                await mysql.query(`
                 INSERT INTO players
                 (
                   nick,
@@ -111,7 +111,7 @@ async function gen_stats () {
         });
       }
 
-      mysql.query(`
+      await mysql.query(`
       INSERT INTO stats
       (
         \`date\`,

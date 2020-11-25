@@ -18,11 +18,7 @@ module.exports = {
     if(data) {
       query = await new Promise((resolve) => {
         Object.keys(data).forEach((key, idx, array) => {
-          query = query.replace(`$[${key}]`, `'${data[key]}'`)
-          query = query.replace(`$[${key}]`, `'${data[key]}'`)
-          query = query.replace(`$[${key}]`, `'${data[key]}'`)
-          query = query.replace(`$[${key}]`, `'${data[key]}'`)
-          query = query.replace(`$[${key}]`, `'${data[key]}'`)
+          query = query.split(`$[${key}]`).join(`'${data[key]}'`);
           if (idx === array.length - 1){
             resolve(query);
           }
