@@ -35,7 +35,7 @@ module.exports = {
       const time_array = [];
       const average = {};
       parsed_value.forEach((data) => {
-        const time = moment(data.time, "HH:mm:ss").format("HH");
+        const time = moment(data.time, "H:mm:ss").format("H");
         if (time_array.includes(time)) sum_array[time].push(data.online_players);
         else {
           time_array.push(time);
