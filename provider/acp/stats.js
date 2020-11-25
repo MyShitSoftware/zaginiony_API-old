@@ -3,74 +3,140 @@ const logger = require('../../core/logger');
 const moment = require('moment');
 
 module.exports = {
-  async get() {
+  async get24() {
     const date = moment().format("YYYY-MM-DD");
-    const result = [];
-    const hours24_result = await mysql.query(`
+    const result = {};
+    const hours24 = await mysql.query(`
     SELECT
-      stats.server_id,
-      servers.server_name,
-      CONCAT('[',
-        (
-          SELECT group_concat(
-            JSON_OBJECT(
-              'time', TIME(stats2.date),
-              'online_players', stats2.online_players
-            )
-          )
-          FROM stats stats2
-          WHERE stats.server_id = stats2.server_id
-          AND DATE(stats2.date) = $[date]
-        )
-      ,']') as value
-    FROM stats
-    LEFT JOIN servers ON stats.server_id = servers.id
-    WHERE DATE(date) = $[date]
-    GROUP BY stats.server_id
+      s.id,
+      s.server_name,
+      CONCAT('[', group_concat(r.result), ']') as value
+    FROM servers s
+    LEFT JOIN (
+      SELECT
+        server_id,
+        JSON_OBJECT(
+          'time', HOUR(s3.date),
+          'online_players', FLOOR(avg(s3.online_players))
+        ) result
+      FROM stats s3
+      WHERE DATE(s3.date) = $[date]
+      GROUP BY server_id, HOUR(s3.date)
+    ) r ON s.id = r.server_id
+    GROUP BY s.id
     `, { date });
 
-    hours24_result.result.map((data) => {
-      const parsed_value = JSON.parse(data.value);
-      const sum_array = {};
-      const time_array = [];
-      const average = {};
-      parsed_value.forEach((data) => {
-        const time = moment(data.time, "H:mm:ss").format("H");
-        if (time_array.includes(time)) sum_array[time].push(data.online_players);
-        else {
-          time_array.push(time);
-          sum_array[time] = [data.online_players];
-        }
+    result.labels = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+    result.datasets = [];
+
+    hours24.result.map((data) => {
+      const old_values = JSON.parse(data.value);
+      const values = {};
+      Object.keys(old_values).map((key) => {
+        values[old_values[key].time] = old_values[key].online_players;
       });
-      for (const [key, data] of Object.entries(sum_array)) {
-        average[key] = Math.floor(data.reduce( ( p, c ) => p + c, 0 ) / data.length);
+
+      for(let i=0; i<result.labels.length; i++) {
+        if(!values[i]) values[i] = 0;
       }
+      result.datasets.push({ label: data.server_name, data: Object.values(values) });
+    })
 
-      const result_data = { server_id: data.server_id, server_name: data.server_name,  value: average }
+    return { success:true, response: result }
+  },
 
-      result.push(result_data);
-    });
+  async get7d() {
+    const date = moment().subtract(7, 'd').format("YYYY-MM-DD");
+    const day = moment().format("DD");
+    const result = {};
+    const hours24 = await mysql.query(`
+    SELECT
+      s.id,
+      s.server_name,
+      CONCAT('[', group_concat(r.result), ']') as value
+    FROM servers s
+    LEFT JOIN (
+      SELECT
+        server_id,
+        JSON_OBJECT(
+          'date', DATE(s3.date),
+          'online_players', FLOOR(avg(s3.online_players))
+        ) result
+      FROM stats s3
+      WHERE DATE(s3.date) >= $[date]
+      GROUP BY server_id, DATE(s3.date)
+    ) r ON s.id = r.server_id
+    GROUP BY s.id
+    `, { date });
 
-    result.forEach((data) => {
-      for(let i=0; i<24; i++) {
-        if(!data.value[i]) data.value[i] = 0;
+    result.labels = [];
+    result.datasets = [];
+
+    for(let i=day-6; i<=day; i++) {
+      result.labels.push(i);
+    }
+
+    hours24.result.map((data) => {
+      const old_values = JSON.parse(data.value);
+      const values = {};
+      Object.keys(old_values).map((key) => {
+        values[moment(old_values[key].date).format("DD")] = old_values[key].online_players;
+      });
+
+      for(let i=day-6; i<=day; i++) {
+        if(!values[i]) values[i] = 0;
       }
-      if(data.value['00'] !== undefined) {
-        data.value[0] = data.value['00'];
-        delete data.value['00'];
+      result.datasets.push({ label: data.server_name, data: Object.values(values) });
+    })
+
+    return { success:true, response: result }
+  },
+
+  async get1m() {
+    const date = moment().format("YYYY-MM-DD");
+    const day = moment().format("DD");
+    const result = {};
+    const hours24 = await mysql.query(`
+    SELECT
+      s.id,
+      s.server_name,
+      CONCAT('[', group_concat(r.result), ']') as value
+    FROM servers s
+    LEFT JOIN (
+      SELECT
+        server_id,
+        JSON_OBJECT(
+          'date', DATE(s3.date),
+          'online_players', FLOOR(avg(s3.online_players))
+        ) result
+      FROM stats s3
+      WHERE month(s3.date) = month($[date])
+        AND year(s3.date) = year($[date])
+      GROUP BY server_id, DATE(s3.date)
+    ) r ON s.id = r.server_id
+    GROUP BY s.id
+    `, { date });
+
+    result.labels = [];
+    result.datasets = [];
+
+    for(let i=1; i<day; i++) {
+      result.labels.push(i);
+    }
+
+    hours24.result.map((data) => {
+      const old_values = JSON.parse(data.value);
+      const values = {};
+      Object.keys(old_values).map((key) => {
+        values[moment(old_values[key].date).format("DD")] = old_values[key].online_players;
+      });
+
+      for(let i=1; i<day; i++) {
+        if(!values[i]) values[i] = 0;
       }
-    });
+      result.datasets.push({ label: data.server_name, data: Object.values(values) });
+    })
 
-    const chartdata = {};
-    chartdata.labels = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
-    chartdata.datasets = [];
-
-    result.map((data) => {
-      console.log(data.value)
-      const values = Object.values(data.value)
-      chartdata.datasets.push({ label: data.server_name, data: values });
-    });
-
-    return { success:true, response: chartdata }
+    return { success:true, response: result }
   }
 }
