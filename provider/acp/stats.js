@@ -125,7 +125,7 @@ module.exports = {
     result.labels = [];
     result.datasets = [];
 
-    for(let i=1; i<day; i++) {
+    for(let i=1; i<=day; i++) {
       result.labels.push(i);
     }
 
@@ -136,9 +136,10 @@ module.exports = {
         values[moment(old_values[key].date).format("DD")] = old_values[key].online_players;
       });
 
-      for(let i=1; i<day; i++) {
+      for(let i=1; i<=day; i++) {
         if(!values[i]) values[i] = 0;
       }
+      console.log(values)
       result.datasets.push({ label: data.server_name, data: Object.values(values) });
     })
 
