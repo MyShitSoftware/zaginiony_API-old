@@ -72,6 +72,13 @@ class query {
 
   connect() {
     this.#conn.connect();
+
+    return new Promise((resolve, reject) => {
+      this.#conn.on('auth', () => {
+        resolve("Authed!");
+        this.#auth = 1;
+      });
+    });
   }
 
   connectToRcon(address, rcon_port, rcon_pass) {
@@ -80,9 +87,6 @@ class query {
     this.#conn.on('connect', () => {
       logger.log('RCON', 'Connected, trying to authorize!');
       this.#connect = 1;
-    }).on('auth', () => {
-      logger.log('RCON', "Authed!");
-      this.#auth = 1;
     }).on('end', function() {
       logger.log('RCON', "Socket closed!");
     }).on('error', (err) => {

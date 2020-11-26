@@ -22,7 +22,7 @@ async function gen_stats () {
   await new Promise(async (resolve) => {
     const resolve_number = config.result.length;
     let item = 1;
-    config.result.forEach(async (config_elem) => {
+    config.result.map(async (config_elem) => {
       const tool = new querier(config_elem.server_ip, config_elem.query_port, config_elem.rcon_port, config_elem.rcon_password);
       await tool.connect();
 
