@@ -139,7 +139,6 @@ module.exports = {
       for(let i=1; i<=day; i++) {
         if(!values[i]) values[i] = 0;
       }
-      console.log(values)
       result.datasets.push({ label: data.server_name, data: Object.values(values) });
     })
 
