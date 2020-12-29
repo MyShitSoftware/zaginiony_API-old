@@ -52,7 +52,7 @@ module.exports = {
 
   async get7d() {
     const date = moment().subtract(7, 'd').format("YYYY-MM-DD");
-    const day = moment().format("DD");
+    const day = moment().format("D");
     const result = {};
     const hours24 = await mysql.query(`
     SELECT
@@ -85,7 +85,7 @@ module.exports = {
       const old_values = JSON.parse(data.value);
       const values = {};
       Object.keys(old_values).map((key) => {
-        values[moment(old_values[key].date).format("DD")] = old_values[key].online_players;
+        values[moment(old_values[key].date).format("D")] = old_values[key].online_players;
       });
 
       for(let i=day-6; i<=day; i++) {
@@ -99,7 +99,7 @@ module.exports = {
 
   async get1m() {
     const date = moment().format("YYYY-MM-DD");
-    const day = moment().format("DD");
+    const day = moment().format("D");
     const result = {};
     const hours24 = await mysql.query(`
     SELECT
