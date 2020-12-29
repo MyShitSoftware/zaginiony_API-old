@@ -121,6 +121,7 @@ module.exports = {
     ) r ON s.id = r.server_id
     GROUP BY s.id
     `, { date });
+    console.log(hours24)
 
     result.labels = [];
     result.datasets = [];
@@ -133,7 +134,7 @@ module.exports = {
       const old_values = JSON.parse(data.value);
       const values = {};
       Object.keys(old_values).map((key) => {
-        values[moment(old_values[key].date).format("DD")] = old_values[key].online_players;
+        values[moment(old_values[key].date).format("D")] = old_values[key].online_players;
       });
 
       for(let i=1; i<=day; i++) {
