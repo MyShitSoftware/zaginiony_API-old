@@ -90,9 +90,15 @@ app.use(async function(req, res, next){
 
             if(validator) {
               Object.keys(validator).forEach((key) => {
-                if (validator[key].require == true && !req.body[key]) {
-                  err.err = 1;
-                  err.code = `Value ${key} missing!`;
+                if (validator[key].require == true) {
+                  if(validator[key].type == 'string' && !req.body[key]) {
+                    err.err = 1;
+                    err.code = `Value ${key} missing!`;
+                  }
+                  if(validator[key].type == 'number' && (req.body[key] === undefined || req.body[key] === null)) {
+                    err.err = 1;
+                    err.code = `Value ${key} missing!`;
+                  }
                 }
               });
             }

@@ -55,11 +55,13 @@ Rcon.prototype.connect = function() {
     .on('data', function(data) { self._tcpSocketOnData(data) })
     .on('connect', function() { self.socketOnConnect() })
     .on('error', function(err) { self.emit('error', err) })
-    .on('end', function() { self.socketOnEnd() });
+    .on('end', function() { self.socketOnEnd() })
+    .on('close', function() { self.socketOnEnd() });
 };
 
 Rcon.prototype.disconnect = function() {
-  this._tcpSocket.end();
+  this._tcpSocket.destroy();
+  delete this._tcpSocket;
 };
 
 Rcon.prototype.setTimeout = function(timeout, callback) {

@@ -1,11 +1,9 @@
-const querier = require('../modules/querier');
 const mysql = require('../core/mysql');
 const p24_api = require('../core/p24-api');
 const logger = require('../core/logger');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const redis = require("redis");
-const p24 = require('../core/p24-api');
 const client = redis.createClient();
 
 client.on("error", function(error) {
@@ -14,50 +12,20 @@ client.on("error", function(error) {
 
 module.exports = {
   async get_status({ data: id }) {
-    const servers_id = id;
-    const status = [];
-    const status_promise = [];
-    const srv = [];
-    const config = await mysql.query('SELECT * FROM servers');
-    config.result.forEach((config_elem) => {
-      const tool = new querier(config_elem.server_ip, config_elem.query_port, config_elem.rcon_port, config_elem.rcon_password);
-      srv.push({
-        type: config_elem.type,
-        querier: tool
+    const server_status = await new Promise((resolve) => {
+      client.get('server_status', (err, data) => {
+        if (err) resolve(null);
+        resolve(JSON.parse(data));
       });
     });
 
-    switch(servers_id) {
-      case '1':
-        srv.forEach(async elem => {
-          if( elem.type === 1) {
-            status_promise.push( new Promise(async (resolve) => {
-              const query = await elem.querier.showInfo();
-              elem.querier.disconnect();
-              resolve(query)
-              status.push(query)
-            }) );
-          }
-        });
-        await Promise.all(status_promise);
-        return { success: true, response: status };
-      case '2':
-        srv.forEach(async elem => {
-          if( elem.type === 2) {
-            status_promise.push( new Promise(async (resolve) => {
-              const query = await elem.querier.showInfo();
-              elem.querier.disconnect();
-              resolve(query)
-              status.push(query)
-            }) );
-          }
-        });
-
-        await Promise.all(status_promise);
-        return { success: true, response: status };
-      default:
-        return { success: false, error: 'No servers selected' };
+    if(!id) {
+      return { success: false, error: 'No servers selected' };
     }
+    if(server_status[id]) {
+      return { success: true, response: server_status[id] };
+    }
+    return { success: false, error: 'Server not found' };
   },
 
   async get_shop_items() {
@@ -87,9 +55,9 @@ module.exports = {
     }
   },
 
-  async gen_pass({ data: { password } }) {
+  async gen_pass({ data }) {
     return new Promise(async (resolve) => {
-      bcrypt.hash(password, saltRounds, function(err, hash) {
+      bcrypt.hash(data, saltRounds, function(err, hash) {
         resolve({ success: true, hash });
       });
     });
